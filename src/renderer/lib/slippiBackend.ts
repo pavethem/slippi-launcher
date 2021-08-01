@@ -6,7 +6,7 @@ import firebase from "firebase";
 
 const httpLink = new HttpLink({ uri: process.env.SLIPPI_GRAPHQL_ENDPOINT });
 
-const client = new ApolloClient({
+export const client = new ApolloClient({
   link: httpLink,
   cache: new InMemoryCache(),
 });
@@ -29,6 +29,33 @@ const renameUserMutation = gql`
       uid
       displayName
     }
+  }
+`;
+
+export const setUserIsOnlineEnabledMutation = gql`
+  mutation SetUserIsOnlineEnabled($uid: String!) {
+    insert_users(
+      objects: [{ uid: $uid, isOnlineEnabled: true }]
+      on_conflict: { constraint: users_pkey, update_columns: [isOnlineEnabled] }
+    ) {
+      returning {
+        uid
+      }
+    }
+  }
+`;
+
+export const initNetplayMutation = gql`
+  mutation InitNetplay($codeStart: String!) {
+    user_init_netplay(codeStart: $codeStart) {
+      uid
+    }
+  }
+`;
+
+export const initCustomPaymentMutation = gql`
+  mutation InitCustomPayment($amount: Float!) {
+    initCustomPayment(amount: $amount)
   }
 `;
 
