@@ -1,8 +1,10 @@
 import { ApolloClient, ApolloLink, gql, HttpLink, InMemoryCache } from "@apollo/client";
 import { ipc_checkPlayKeyExists, ipc_removePlayKeyFile, ipc_storePlayKeyFile } from "@dolphin/ipc";
 import { PlayKey } from "@dolphin/types";
-import log from "electron-log";
+import electronLog from "electron-log";
 import firebase from "firebase";
+
+const log = electronLog.scope("slippiBackend");
 
 const httpLink = new HttpLink({ uri: process.env.SLIPPI_GRAPHQL_ENDPOINT });
 
@@ -130,4 +132,38 @@ export async function changeDisplayName(name: string) {
   }
 
   await user.updateProfile({ displayName: name });
+}
+
+export async function setConnectCode(codeStart: string): Promise<void> {
+  const user = firebase.auth().currentUser;
+  if (!user) {
+    throw new Error("Failed to set connect code. User is not logged in");
+  }
+
+  const res = await client.mutate({ mutation: initNetplayMutation, variables: { codeStart } });
+
+  if (res.errors) {
+    let errMsgs = "";
+    res.errors.forEach((err) => {
+      errMsgs += `${err.message}\n`;
+    });
+    throw new Error(errMsgs);
+  }
+}
+
+export async function setOnlineEnabled(): Promise<void> {
+  const user = firebase.auth().currentUser;
+  if (!user) {
+    throw new Error("Failed to enable user for online play. User is not logged in");
+  }
+
+  const res = await client.mutate({ mutation: setUserIsOnlineEnabledMutation, variables: { uid: user.uid } });
+
+  if (res.errors) {
+    let errMsgs = "";
+    res.errors.forEach((err) => {
+      errMsgs += `${err.message}\n`;
+    });
+    throw new Error(errMsgs);
+  }
 }

@@ -1,5 +1,4 @@
 /** @jsx jsx */
-import { useMutation } from "@apollo/client";
 import { jsx } from "@emotion/react";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
@@ -15,7 +14,7 @@ import firebase from "firebase";
 import React from "react";
 
 import { useAccount } from "@/lib/hooks/useAccount";
-import { client, initNetplayMutation, setUserIsOnlineEnabledMutation } from "@/lib/slippiBackend";
+import { setConnectCode, setOnlineEnabled } from "@/lib/slippiBackend";
 
 const log = electronLog.scope("ActivateOnlineForm");
 export interface ActivateOnlineFormProps {
@@ -143,14 +142,6 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
 
   const startTag = getStartTag(user.displayName);
 
-  const [initNetplay] = useMutation(initNetplayMutation, {
-    context: { isAuthed: true },
-    client,
-  });
-  const [setUserIsOnlineEnabled] = useMutation(setUserIsOnlineEnabledMutation, {
-    context: { isAuthed: true },
-    client,
-  });
   const [tag, setTag] = React.useState(startTag);
   const [isWorking, setIsWorking] = React.useState(false);
   const [errMessage, setErrMessage] = React.useState(null);
@@ -188,7 +179,7 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
     setErrMessage(null);
     setIsWorking(true);
 
-    initNetplay({ variables: { codeStart: tag } }).then(
+    setConnectCode(tag).then(
       () => {
         onSuccess();
         setIsWorking(false);
@@ -199,7 +190,7 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
       },
     );
 
-    setUserIsOnlineEnabled({ variables: { uid: user.uid } }).catch(log.warn);
+    setOnlineEnabled().catch(log.warn);
   };
 
   const connectCodeField = (
