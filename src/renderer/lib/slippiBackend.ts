@@ -9,7 +9,7 @@ const log = electronLog.scope("slippiBackend");
 
 const httpLink = new HttpLink({ uri: process.env.SLIPPI_GRAPHQL_ENDPOINT });
 
-export const client = new ApolloClient({
+const client = new ApolloClient({
   link: httpLink,
   cache: new InMemoryCache(),
 });
