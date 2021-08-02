@@ -10,12 +10,14 @@ import Typography from "@material-ui/core/Typography";
 import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
 import ErrorOutline from "@material-ui/icons/ErrorOutline";
 import Alert from "@material-ui/lab/Alert";
+import electronLog from "electron-log";
 import firebase from "firebase";
 import React from "react";
 
 import { useAccount } from "@/lib/hooks/useAccount";
-import { client, initNetplayMutation } from "@/lib/slippiBackend";
+import { client, initNetplayMutation, setUserIsOnlineEnabledMutation } from "@/lib/slippiBackend";
 
+const log = electronLog.scope("ActivateOnlineForm");
 export interface ActivateOnlineFormProps {
   className?: string;
   hideRetry?: boolean;
@@ -145,6 +147,10 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
     context: { isAuthed: true },
     client,
   });
+  const [setUserIsOnlineEnabled] = useMutation(setUserIsOnlineEnabledMutation, {
+    context: { isAuthed: true },
+    client,
+  });
   const [tag, setTag] = React.useState(startTag);
   const [isWorking, setIsWorking] = React.useState(false);
   const [errMessage, setErrMessage] = React.useState(null);
@@ -192,6 +198,8 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
         setIsWorking(false);
       },
     );
+
+    setUserIsOnlineEnabled({ variables: { uid: user.uid } }).catch(log.warn);
   };
 
   const connectCodeField = (

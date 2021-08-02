@@ -53,12 +53,6 @@ export const initNetplayMutation = gql`
   }
 `;
 
-export const initCustomPaymentMutation = gql`
-  mutation InitCustomPayment($amount: Float!) {
-    initCustomPayment(amount: $amount)
-  }
-`;
-
 export async function fetchPlayKey(): Promise<PlayKey> {
   const user = firebase.auth().currentUser;
   if (!user) {
