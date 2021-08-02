@@ -3,6 +3,7 @@ import { ipc_checkPlayKeyExists, ipc_removePlayKeyFile, ipc_storePlayKeyFile } f
 import { PlayKey } from "@dolphin/types";
 import electronLog from "electron-log";
 import firebase from "firebase";
+import { GraphQLError } from "graphql";
 
 const log = electronLog.scope("slippiBackend");
 
@@ -134,36 +135,25 @@ export async function changeDisplayName(name: string) {
   await user.updateProfile({ displayName: name });
 }
 
-export async function setConnectCode(codeStart: string): Promise<void> {
+export async function initNetplay(codeStart: string): Promise<void> {
   const user = firebase.auth().currentUser;
   if (!user) {
     throw new Error("Failed to set connect code. User is not logged in");
   }
 
-  const res = await client.mutate({ mutation: initNetplayMutation, variables: { codeStart } });
+  const handleErrors = (errors: readonly GraphQLError[] | undefined) => {
+    if (errors) {
+      let errMsgs = "";
+      errors.forEach((err) => {
+        errMsgs += `${err.message}\n`;
+      });
+      throw new Error(errMsgs);
+    }
+  };
 
-  if (res.errors) {
-    let errMsgs = "";
-    res.errors.forEach((err) => {
-      errMsgs += `${err.message}\n`;
-    });
-    throw new Error(errMsgs);
-  }
-}
+  let res = await client.mutate({ mutation: initNetplayMutation, variables: { codeStart } });
+  handleErrors(res.errors);
 
-export async function setOnlineEnabled(): Promise<void> {
-  const user = firebase.auth().currentUser;
-  if (!user) {
-    throw new Error("Failed to enable user for online play. User is not logged in");
-  }
-
-  const res = await client.mutate({ mutation: setUserIsOnlineEnabledMutation, variables: { uid: user.uid } });
-
-  if (res.errors) {
-    let errMsgs = "";
-    res.errors.forEach((err) => {
-      errMsgs += `${err.message}\n`;
-    });
-    throw new Error(errMsgs);
-  }
+  res = await client.mutate({ mutation: setUserIsOnlineEnabledMutation, variables: { uid: user.uid } });
+  handleErrors(res.errors);
 }

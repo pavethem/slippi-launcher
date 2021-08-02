@@ -14,7 +14,7 @@ import firebase from "firebase";
 import React from "react";
 
 import { useAccount } from "@/lib/hooks/useAccount";
-import { setConnectCode, setOnlineEnabled } from "@/lib/slippiBackend";
+import { initNetplay } from "@/lib/slippiBackend";
 
 const log = electronLog.scope("ActivateOnlineForm");
 export interface ActivateOnlineFormProps {
@@ -144,7 +144,7 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
 
   const [tag, setTag] = React.useState(startTag);
   const [isWorking, setIsWorking] = React.useState(false);
-  const [errMessage, setErrMessage] = React.useState(null);
+  const [errMessage, setErrMessage] = React.useState("");
   const [tagState, setTagState] = React.useState("short");
 
   // Handle checking availability on tag change
@@ -172,25 +172,24 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
     event.target.value = newTag;
 
     setTag(newTag);
-    setErrMessage(null);
+    setErrMessage("");
   };
 
   const onConfirmTag = () => {
-    setErrMessage(null);
+    setErrMessage("");
     setIsWorking(true);
 
-    setConnectCode(tag).then(
+    initNetplay(tag).then(
       () => {
         onSuccess();
         setIsWorking(false);
       },
-      (err) => {
+      (err: Error) => {
         setErrMessage(err.message);
+        log.error(err);
         setIsWorking(false);
       },
     );
-
-    setOnlineEnabled().catch(log.warn);
   };
 
   const connectCodeField = (
