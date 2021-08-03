@@ -23,7 +23,6 @@ export const ActivateOnlineDialog: React.FC<ActivateOnlineDialogProps> = ({ open
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("xs"));
   const refreshPlayKey = useAccount((store) => store.refreshPlayKey);
-  const loading = useAccount((store) => store.loading);
   const { addToast } = useToasts();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -41,16 +40,13 @@ export const ActivateOnlineDialog: React.FC<ActivateOnlineDialogProps> = ({ open
   return (
     <Dialog open={open} onClose={onClose} fullWidth={true} fullScreen={fullScreen} disableBackdropClick={true}>
       <form onSubmit={handleSubmit}>
-        <StyledDialogTitle>Online play is disabled</StyledDialogTitle>
+        <StyledDialogTitle>Select a Connect Code to enable online play</StyledDialogTitle>
         <DialogContent style={{ display: "flex" }}>
           <ActivateOnlineForm hideRetry={true} />
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} color="secondary">
             Cancel
-          </Button>
-          <Button color="primary" type="submit" disabled={loading}>
-            Retry
           </Button>
         </DialogActions>
       </form>
