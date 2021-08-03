@@ -1,9 +1,9 @@
 /** @jsx jsx */
 import { css, jsx } from "@emotion/react";
+import styled from "@emotion/styled";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import InputAdornment from "@material-ui/core/InputAdornment";
-import { makeStyles } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
@@ -17,46 +17,12 @@ import { useAccount } from "@/lib/hooks/useAccount";
 import { initNetplay } from "@/lib/slippiBackend";
 
 const log = electronLog.scope("ActivateOnlineForm");
-export interface ActivateOnlineFormProps {
-  className?: string;
-  hideRetry?: boolean;
-}
 
-const useStyles = makeStyles((theme) => ({
-  largeButton: {
-    marginTop: "10px",
-  },
-  connectCodeInput: {
-    maxWidth: "220px",
-    marginTop: "10px",
-    marginBottom: "4px",
-  },
-  dottedList: {
-    paddingLeft: "33px",
-    margin: "6px 0",
-  },
-  listItem: {
-    margin: "4px 0",
-  },
-  codeErrorMessage: {
-    marginTop: "8px",
-  },
-  error: {
-    color: theme.palette.error.light,
-  },
-  success: {
-    color: theme.palette.success.light,
-  },
-  working: {
-    color: theme.palette.text.secondary,
-  },
-}));
-
-export const ActivateOnlineForm: React.FC<ActivateOnlineFormProps> = ({ className }) => {
+export const ActivateOnlineForm: React.FC = () => {
   const user = useAccount((store) => store.user) as firebase.User;
   const refreshActivation = useAccount((store) => store.refreshPlayKey);
   return (
-    <div className={className}>
+    <div>
       <div>Your connect code is the way other players will connect to you directly.</div>
       <ConnectCodeSetter user={user} onSuccess={refreshActivation} />
     </div>
@@ -69,8 +35,6 @@ interface ConnectCodeSetterProps {
 }
 
 const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }) => {
-  const classes = useStyles();
-
   const getStartTag = (displayName: string | null) => {
     const safeName = displayName || "";
     const matches = safeName.match(/[a-zA-Z]+/g) || [];
@@ -131,7 +95,10 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
 
   const connectCodeField = (
     <TextField
-      className={classes.connectCodeInput}
+      css={css`
+        max-width: 140px;
+        margin: 20px auto 10px auto;
+      `}
       key="connectCode"
       name="connectCode"
       id="connectCode"
@@ -161,10 +128,10 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
     }
 
     return (
-      <div
+      <ValidationContainer
+        className={tagState}
         css={css`
-          margin: 15px 0px 0px 5px;
-          display: flex;
+          margin-top: 25px;
         `}
       >
         {icon}
@@ -176,14 +143,20 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
         >
           {text}
         </Typography>
-      </div>
+      </ValidationContainer>
     );
   };
 
   let errorDisplay = null;
   if (errMessage) {
     errorDisplay = (
-      <Alert className={classes.codeErrorMessage} variant="outlined" severity="error">
+      <Alert
+        css={css`
+          margin-top: 8px;
+        `}
+        variant="outlined"
+        severity="error"
+      >
         {errMessage}
       </Alert>
     );
@@ -192,30 +165,67 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
   return (
     <form>
       <Typography component="div" variant="body2" color="textSecondary">
-        <ul className={classes.dottedList}>
-          <li className={classes.listItem}>2-4 uppercase english characters</li>
-          <li className={classes.listItem}>Trailing numbers will be auto-generated</li>
+        <ul
+          css={css`
+            padding-left: 33px;
+            margin: 6px 0;
+          `}
+        >
+          <StyledListItem>2-4 uppercase english characters</StyledListItem>
+          <StyledListItem>Trailing numbers will be auto-generated</StyledListItem>
         </ul>
       </Typography>
       <div
         css={css`
           display: flex;
+          margin-left: auto;
+          margin-right: auto;
+          width: 400px;
+          flex-direction: column;
         `}
       >
-        {connectCodeField}
-        {renderTagState()}
+        <div
+          css={css`
+            display: flex;
+            margin-left: auto;
+            margin-right: auto;
+            width: 200px;
+            flex-direction: row;
+          `}
+        >
+          {connectCodeField}
+          {renderTagState()}
+        </div>
+
+        <Button
+          css={css`
+            margin-top: 10px;
+          `}
+          variant="contained"
+          color="primary"
+          size="large"
+          onClick={onConfirmTag}
+          disabled={tagState !== "valid" || isWorking}
+        >
+          {isWorking ? <CircularProgress color="inherit" size={29} /> : "Confirm Code"}
+        </Button>
       </div>
-      <Button
-        className={classes.largeButton}
-        variant="contained"
-        color="primary"
-        size="large"
-        onClick={onConfirmTag}
-        disabled={tagState !== "valid" || isWorking}
-      >
-        {isWorking ? <CircularProgress color="inherit" size={29} /> : "Confirm Code"}
-      </Button>
       {errorDisplay}
     </form>
   );
 };
+
+const StyledListItem = styled.li`
+  margin: 4px 0;
+`;
+
+const ValidationContainer = styled.div`
+  display: flex;
+  margin: 15px 0px 0px 5px;
+  &.short {
+    color: ${({ theme }) => theme.palette.error.main};
+  }
+  &.valid {
+    color: ${({ theme }) => theme.palette.success.main};
+  }
+`;

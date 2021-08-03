@@ -1,7 +1,5 @@
 import styled from "@emotion/styled";
-import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import { useTheme } from "@material-ui/core/styles";
@@ -38,17 +36,12 @@ export const ActivateOnlineDialog: React.FC<ActivateOnlineDialogProps> = ({ open
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth={true} fullScreen={fullScreen} disableBackdropClick={true}>
+    <Dialog open={open} onClose={onClose} fullWidth={true} fullScreen={fullScreen} disableBackdropClick={false}>
       <form onSubmit={handleSubmit}>
-        <StyledDialogTitle>Select a Connect Code to enable online play</StyledDialogTitle>
-        <DialogContent style={{ display: "flex" }}>
-          <ActivateOnlineForm hideRetry={true} />
+        <StyledDialogTitle>Choose a Connect Code to enable online play</StyledDialogTitle>
+        <DialogContent style={{ display: "flex", paddingBottom: 30 }}>
+          <ActivateOnlineForm />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose} color="secondary">
-            Cancel
-          </Button>
-        </DialogActions>
       </form>
     </Dialog>
   );
