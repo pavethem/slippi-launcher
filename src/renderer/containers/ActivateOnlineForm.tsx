@@ -1,5 +1,5 @@
 /** @jsx jsx */
-import { jsx } from "@emotion/react";
+import { css, jsx } from "@emotion/react";
 import Button from "@material-ui/core/Button";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import InputAdornment from "@material-ui/core/InputAdornment";
@@ -23,23 +23,12 @@ export interface ActivateOnlineFormProps {
 }
 
 const useStyles = makeStyles((theme) => ({
-  cardContent: {
-    margin: "10px",
-  },
-  copyIcon: {
-    fontSize: "18px",
-  },
   largeButton: {
     marginTop: "10px",
   },
-  pathDisplay: {
-    color: theme.palette.text.primary,
-    fontWeight: "bold",
-  },
   connectCodeInput: {
     maxWidth: "220px",
-    marginLeft: "20px",
-    marginTop: "6px",
+    marginTop: "10px",
     marginBottom: "4px",
   },
   dottedList: {
@@ -49,29 +38,8 @@ const useStyles = makeStyles((theme) => ({
   listItem: {
     margin: "4px 0",
   },
-  codeDisplayContainer: {
-    marginTop: "12px",
-    marginLeft: "20px",
-  },
   codeErrorMessage: {
     marginTop: "8px",
-  },
-  paymentCompleteContainer: {
-    marginTop: "12px",
-    marginLeft: "20px",
-    color: theme.palette.success.light,
-  },
-  paymentAmountInput: {
-    maxWidth: "160px",
-    marginLeft: "20px",
-    marginTop: "12px",
-    marginBottom: "4px",
-  },
-  numbers: {
-    color: theme.palette.text.secondary,
-  },
-  tag: {
-    fontWeight: 500,
   },
   error: {
     color: theme.palette.error.light,
@@ -82,37 +50,6 @@ const useStyles = makeStyles((theme) => ({
   working: {
     color: theme.palette.text.secondary,
   },
-  textHighlight: {
-    color: "white",
-    fontWeight: 500,
-  },
-  noShareWarning: {
-    marginTop: "10px",
-  },
-  donateButton: {
-    marginTop: "12px",
-    marginBottom: "4px",
-  },
-  copyLocButton: {
-    marginLeft: "10px",
-  },
-  unselectable: {
-    userSelect: "none" /* Standard */,
-  },
-  dimHeader: {
-    opacity: 0.3,
-  },
-  skipPaymentContainer: {
-    marginTop: "2px",
-    textAlign: "center",
-    fontSize: "14px",
-    color: theme.palette.text.secondary,
-    "& button": {
-      // Style all buttons within this class
-      fontSize: "14px",
-      marginTop: "-2px", // button text was not aligned with other text without this
-    },
-  },
 }));
 
 export const ActivateOnlineForm: React.FC<ActivateOnlineFormProps> = ({ className }) => {
@@ -120,7 +57,7 @@ export const ActivateOnlineForm: React.FC<ActivateOnlineFormProps> = ({ classNam
   const refreshActivation = useAccount((store) => store.refreshPlayKey);
   return (
     <div className={className}>
-      <div>Your account needs to be activated for online play. First, pick a connect code.</div>
+      <div>Your connect code is the way other players will connect to you directly.</div>
       <ConnectCodeSetter user={user} onSuccess={refreshActivation} />
     </div>
   );
@@ -224,9 +161,21 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
     }
 
     return (
-      <div>
+      <div
+        css={css`
+          margin: 15px 0px 0px 5px;
+          display: flex;
+        `}
+      >
         {icon}
-        <Typography variant="body2">{text}</Typography>
+        <Typography
+          variant="body2"
+          css={css`
+            margin: 4px 0px 0px 5px;
+          `}
+        >
+          {text}
+        </Typography>
       </div>
     );
   };
@@ -248,8 +197,14 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
           <li className={classes.listItem}>Trailing numbers will be auto-generated</li>
         </ul>
       </Typography>
-      {connectCodeField}
-      {renderTagState()}
+      <div
+        css={css`
+          display: flex;
+        `}
+      >
+        {connectCodeField}
+        {renderTagState()}
+      </div>
       <Button
         className={classes.largeButton}
         variant="contained"
