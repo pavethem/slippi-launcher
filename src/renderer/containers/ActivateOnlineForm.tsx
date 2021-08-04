@@ -6,15 +6,15 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
-import CheckCircleOutline from "@material-ui/icons/CheckCircleOutline";
-import ErrorOutline from "@material-ui/icons/ErrorOutline";
 import Alert from "@material-ui/lab/Alert";
 import electronLog from "electron-log";
 import firebase from "firebase";
 import React from "react";
+import { Controller, useForm } from "react-hook-form";
 
 import { useAccount } from "@/lib/hooks/useAccount";
 import { initNetplay } from "@/lib/slippiBackend";
+import { isValidConnectCodeStart } from "@/lib/validate";
 
 const log = electronLog.scope("ActivateOnlineForm");
 
@@ -34,6 +34,10 @@ interface ConnectCodeSetterProps {
   onSuccess: () => void;
 }
 
+interface FormValues {
+  tag: string;
+}
+
 const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }) => {
   const getStartTag = (displayName: string | null) => {
     const safeName = displayName || "";
@@ -42,39 +46,42 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
   };
 
   const startTag = getStartTag(user.displayName);
+  const defaultValues = { tag: startTag };
 
-  const [tag, setTag] = React.useState(startTag);
   const [isWorking, setIsWorking] = React.useState(false);
   const [errMessage, setErrMessage] = React.useState("");
-  const [tagState, setTagState] = React.useState("short");
 
-  // Handle checking availability on tag change
-  const prevTagRef = React.useRef();
-  React.useEffect(() => {
-    const prevTag = prevTagRef.current;
-    ((prevTagRef.current as unknown) as string) = tag;
+  const { handleSubmit, watch, control, setValue } = useForm<FormValues>({ defaultValues });
 
-    // If tag hasn't changed, do nothing
-    if (prevTag === tag) {
-      return;
-    }
+  const tag = watch("tag");
 
-    const state = tag.length < 2 ? "short" : "valid";
-    setTagState(state);
-  }, [tag, user.uid]);
+  // // Handle checking availability on tag change
+  // const prevTagRef = React.useRef();
+  // React.useEffect(() => {
+  //   const prevTag = prevTagRef.current;
+  //   ((prevTagRef.current as unknown) as string) = tag;
 
-  const handleTagChange = (event: any) => {
-    let newTag = event.target.value;
+  //   // If tag hasn't changed, do nothing
+  //   if (prevTag === tag) {
+  //     return;
+  //   }
 
-    // Only allow english characters and capitalize them
-    const safeTag = newTag || "";
-    const matches = safeTag.match(/[a-zA-Z]+/g) || [];
-    newTag = matches.join("").toUpperCase().substring(0, 4);
-    event.target.value = newTag;
+  //   const state = tag.length < 2 ? "Too Short" : "Valid";
+  //   setTagState(state);
+  // }, [tag, user.uid]);
 
-    setTag(newTag);
-    setErrMessage("");
-  };
+  // const handleTagChange = (event: any) => {
+  //   let newTag = event.target.value;
+
+  //   // Only allow english characters and capitalize them
+  //   const safeTag = newTag || "";
+  //   const matches = safeTag.match(/[a-zA-Z]+/g) || [];
+  //   newTag = matches.join("").toUpperCase().substring(0, 4);
+  //   event.target.value = newTag;
+
+  //   setTag(newTag);
+  //   setErrMessage("");
+  // };
 
   const onConfirmTag = () => {
     setErrMessage("");
@@ -93,59 +100,39 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
     );
   };
 
+  const onFormSubmit = handleSubmit(onConfirmTag);
+
   const connectCodeField = (
-    <TextField
-      css={css`
-        max-width: 140px;
-        margin: 20px auto 10px auto;
-      `}
-      key="connectCode"
-      name="connectCode"
-      id="connectCode"
-      label="Connect Code"
-      defaultValue={startTag}
-      InputProps={{
-        endAdornment: <InputAdornment position="end">#123</InputAdornment>,
+    <Controller
+      name="tag"
+      control={control}
+      defaultValue=""
+      render={({ field, fieldState: { error } }) => (
+        <TextField
+          {...field}
+          required={true}
+          css={css`
+            max-width: 140px;
+            margin: 20px auto 10px auto;
+          `}
+          label="Connect Code"
+          InputProps={{
+            endAdornment: <InputAdornment position="end">#123</InputAdornment>,
+          }}
+          variant="outlined"
+          error={Boolean(error)}
+          helperText={error ? error.message : undefined}
+        />
+      )}
+      rules={{
+        validate: (val) => {
+          const adjustedCode = val.toUpperCase().substring(0, 4);
+          setValue("tag", adjustedCode);
+          return isValidConnectCodeStart(adjustedCode);
+        },
       }}
-      variant="outlined"
-      onChange={handleTagChange}
     />
   );
-
-  const renderTagState = () => {
-    let icon, text;
-    switch (tagState) {
-      case "short":
-        icon = <ErrorOutline />;
-        text = "Too Short";
-        break;
-      case "valid":
-        icon = <CheckCircleOutline />;
-        text = "Valid";
-        break;
-      default:
-        return null;
-    }
-
-    return (
-      <ValidationContainer
-        className={tagState}
-        css={css`
-          margin-top: 25px;
-        `}
-      >
-        {icon}
-        <Typography
-          variant="body2"
-          css={css`
-            margin: 4px 0px 0px 5px;
-          `}
-        >
-          {text}
-        </Typography>
-      </ValidationContainer>
-    );
-  };
 
   let errorDisplay = null;
   if (errMessage) {
@@ -163,7 +150,7 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
   }
 
   return (
-    <form>
+    <form className="form" onSubmit={onFormSubmit}>
       <Typography component="div" variant="body2" color="textSecondary">
         <ul
           css={css`
@@ -184,18 +171,7 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
           flex-direction: column;
         `}
       >
-        <div
-          css={css`
-            display: flex;
-            margin-left: auto;
-            margin-right: auto;
-            width: 200px;
-            flex-direction: row;
-          `}
-        >
-          {connectCodeField}
-          {renderTagState()}
-        </div>
+        {connectCodeField}
 
         <Button
           css={css`
@@ -204,8 +180,8 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
           variant="contained"
           color="primary"
           size="large"
-          onClick={onConfirmTag}
-          disabled={tagState !== "valid" || isWorking}
+          type="submit"
+          disabled={isWorking}
         >
           {isWorking ? <CircularProgress color="inherit" size={29} /> : "Confirm Code"}
         </Button>
@@ -217,15 +193,4 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ user, onSuccess }
 
 const StyledListItem = styled.li`
   margin: 4px 0;
-`;
-
-const ValidationContainer = styled.div`
-  display: flex;
-  margin: 15px 0px 0px 5px;
-  &.short {
-    color: ${({ theme }) => theme.palette.error.main};
-  }
-  &.valid {
-    color: ${({ theme }) => theme.palette.success.main};
-  }
 `;
