@@ -4,7 +4,7 @@ export const isMac = process.platform === "darwin";
 export const isLinux = process.platform === "linux";
 
 export const slippiHomepage = "https://slippi.gg";
-export const slippiActivationUrl = "https://slippi.gg/online/enable";
+export const slippiProfileUrl = "https://slippi.gg/profile";
 
 export const socials = {
   twitterId: "ProjectSlippi",

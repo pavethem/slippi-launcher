@@ -116,6 +116,7 @@ const ConnectCodeSetter: React.FC<ConnectCodeSetterProps> = ({ displayName, onSu
         >
           <StyledListItem>2-4 uppercase English characters</StyledListItem>
           <StyledListItem>Trailing numbers will be auto-generated</StyledListItem>
+          <StyledListItem>Can be changed later for a one-time payment</StyledListItem>
         </ul>
       </Typography>
       <div

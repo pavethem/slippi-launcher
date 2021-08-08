@@ -3,6 +3,9 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import EditIcon from "@material-ui/icons/Edit";
 import EjectIcon from "@material-ui/icons/Eject";
 import LanguageIcon from "@material-ui/icons/Language";
+import { slippiProfileUrl } from "common/constants";
+import { shell } from "electron";
+import electronLog from "electron-log";
 import firebase from "firebase";
 import React from "react";
 import { useToasts } from "react-toast-notifications";
@@ -15,6 +18,8 @@ import { useAccount } from "@/lib/hooks/useAccount";
 import { ActivateOnlineDialog } from "./ActivateOnlineDialog";
 import { NameChangeDialog } from "./NameChangeDialog";
 import { UserInfo } from "./UserInfo";
+
+const log = electronLog.scope("UserMenu");
 
 export const UserMenu: React.FC<{
   user: firebase.User;
@@ -72,6 +77,14 @@ export const UserMenu: React.FC<{
           setOpenNameChangePrompt(true);
         },
         label: "Edit display name",
+        icon: <EditIcon fontSize="small" />,
+      });
+      items.push({
+        onClick: () => {
+          closeMenu();
+          shell.openExternal(slippiProfileUrl).catch(log.warn);
+        },
+        label: "Edit connect code",
         icon: <EditIcon fontSize="small" />,
       });
     }
